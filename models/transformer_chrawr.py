@@ -57,7 +57,7 @@ class TransformerChrawr(transformer.Transformer):
     inputs = tf.layers.conv1d(inputs, hparams.reduced_input_size, 1, 1, 'same', name="reduced_embedding")
     inputs = tdnn(inputs, hparams.chr_kernels, hparams.chr_kernel_features, hparams.chr_maxpool_size)
     inputs = highway(inputs, inputs.get_shape()[-1], hparams)
-    inputs = tf.layer.conv1d(inputs, hparams.hidden_size, 1, 1, 'same', name="rescaled_embedding")
+    inputs = tf.layers.conv1d(inputs, hparams.hidden_size, 1, 1, 'same', name="rescaled_embedding")
 
     encoder_input, self_attention_bias, encoder_decoder_attention_bias = (
         transformer.transformer_prepare_encoder(inputs, target_space, hparams))
