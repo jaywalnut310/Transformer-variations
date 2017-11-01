@@ -42,7 +42,7 @@ def get_or_generate_vocab(data_dir, tmp_dir, vocab_filename, vocab_size, text_fi
     else:
       return tokenizer.encode(text)
 
-  def text_encoder(vocab_filepath, replace_oov):
+  def encoder(vocab_filepath, replace_oov):
     if mode=='character':
       return CharacterTextEncoder(vocab_filepath, replace_oov=replace_oov)
     else:
@@ -55,7 +55,7 @@ def get_or_generate_vocab(data_dir, tmp_dir, vocab_filename, vocab_size, text_fi
 
   if vocab_filepath is not None and tf.gfile.Exists(vocab_filepath):
     tf.logging.info("Found vocab file: %s", vocab_filepath)
-    vocab = text_encoder(vocab_filepath, replace_oov="UNK")
+    vocab = encoder(vocab_filepath, replace_oov="UNK")
     return vocab
 
   tf.logging.info("Generating vocab file: %s", vocab_filepath)
@@ -72,7 +72,7 @@ def get_or_generate_vocab(data_dir, tmp_dir, vocab_filename, vocab_size, text_fi
     for word in word_list:
       f.write(word + '\n')
 
-  vocab = text_encoder(vocab_filepath, replace_oov="UNK")
+  vocab = encoder(vocab_filepath, replace_oov="UNK")
 
   return vocab
 

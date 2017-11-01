@@ -12,7 +12,7 @@ class CharacterTextEncoder(text_encoder.TokenTextEncoder):
                reverse=False,
                vocab_list=None,
                replace_oov=None,
-               num_reserved_ids=NUM_RESERVED_TOKENS):
+               num_reserved_ids=text_encoder.NUM_RESERVED_TOKENS):
     """Initialize from a file or list, one token per line.
 
     Handling of reserved tokens works as follows:
