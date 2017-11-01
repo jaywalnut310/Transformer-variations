@@ -122,12 +122,11 @@ def transformer_chrawr_base():
   """Base hparams for Transformer with Character Aware Embedding."""
   hparams = transformer.transformer_base()
   hparams.num_highway_layers = 3
-  hparams.reduced_input_size = 64
+  hparams.reduced_input_size = 128
   hparams.hidden_size = 512
   hparams.chr_kernels = [1,2,3,4,5,6,7,8]
   hparams.chr_kernel_features = [50,100,150,200,200,200,200,200]
   hparams.chr_maxpool_size = 5
-  hparams.learning_rate = 0.03
   return hparams
 
 @registry.register_hparams
@@ -159,5 +158,13 @@ def transformer_chrawr_base_single_gpu():
   hparams = transformer_chrawr_base()
   hparams.batch_size = 2048
   hparams.learning_rate_warmup_steps = 16000
-  hparams.learning_rate = 0.06
+  return hparams
+
+@registry.register_hparams
+def transformer_chrawr_ko_single_gpu():
+  """HParams for transformer_chrawr base model for single gpu."""
+  hparams = transformer_chrawr_base_single_gpu()
+  hparams.chr_kernels = [1,2,3,4,5,6,7,8]
+  hparams.chr_kernel_features = [200,200,200,200,200,150,100,50]
+  hparams.chr_maxpool_size = 3
   return hparams

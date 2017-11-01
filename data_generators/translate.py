@@ -29,6 +29,7 @@ from tensor2tensor.utils import registry
 
 import tensorflow as tf
 from .generator_utils import get_or_generate_vocab
+from .text_encoder import CharacterTextEncoder
 
 _KOEN_TRAIN_DATASETS = [("dict.ko.train", "dict.en.train")]
 _KOEN_TEST_DATASETS = [("dict.ko.valid", "dict.en.valid")]
@@ -61,12 +62,20 @@ def get_or_compile_data(tmp_dir, datasets, filename):
   return filename
 
 @registry.register_problem
-class TranslateKoenChar2wordSimple(translate.TranslateProblem):
+class TranslateKoenSimple(translate.TranslateProblem):
   """Problem spec for Simple Ko-En translation."""
 
   @property
+  def source_mode(self):
+    return 'word'
+
+  @property
+  def target_mode(self):
+    return 'word'
+
+  @property
   def sourced_vocab_size(self):
-    return None 
+    return 2**13 #8192 
 
   @property
   def targeted_vocab_size(self):
@@ -100,9 +109,9 @@ class TranslateKoenChar2wordSimple(translate.TranslateProblem):
     tf.gfile.MakeDirs(data_dir)
 
     source_vocab = get_or_generate_vocab(data_dir, tmp_dir, self.source_vocab_name, 
-            self.sourced_vocab_size, source_datasets, mode='character')
+            self.sourced_vocab_size, source_datasets, mode=self.source_mode)
     target_vocab = get_or_generate_vocab(data_dir, tmp_dir, self.target_vocab_name,
-            self.targeted_vocab_size, target_datasets)
+            self.targeted_vocab_size, target_datasets, mode=self.target_mode)
 
     tag = "train" if train else "dev"
     data_path = get_or_compile_data(tmp_dir, datasets, "simple_koen_tok_%s" % tag)
@@ -121,5 +130,83 @@ class TranslateKoenChar2wordSimple(translate.TranslateProblem):
     }
 
 
+@registry.register_problem
+class TranslateKoenChar2wordSimple(TranslateKoenSimple):
+  """Problem spec for Simple Ko-En translation."""
+
+  @property
+  def source_mode(self):
+    return 'character'
+
+  @property
+  def sourced_vocab_size(self):
+    return None 
+
+  def feature_encoders(self, data_dir):
+    source_vocab_filename = os.path.join(data_dir, self.source_vocab_name)
+    target_vocab_filename = os.path.join(data_dir, self.target_vocab_name)
+    source_token = CharacterTextEncoder(source_vocab_filename, replace_oov="UNK")
+    target_token = text_encoder.TokenTextEncoder(target_vocab_filename, replace_oov="UNK")
+    return {
+      "inputs": source_token,
+      "targets": target_token,
+    }
+
+
+
+
+@registry.register_problem
+class TranslateKoenCharacterSimple(TranslateKoenSimple):
+  """Problem spec for Simple Ko-En translation."""
+
+  @property
+  def source_mode(self):
+    return 'character'
+
+  @property
+  def target_mode(self):
+    return 'character'
+
+  @property
+  def sourced_vocab_size(self):
+    return None 
+
+  @property
+  def targeted_vocab_size(self):
+    return None
+
+
+@registry.register_problem
+class TranslateKoenByte2wordSimple(TranslateKoenSimple):
+  """Problem spec for Simple Ko-En translation."""
+
+  @property
+  def source_mode(self):
+    return 'byte'
+
+  @property
+  def sourced_vocab_size(self):
+    return None 
+
+
+@registry.register_problem
+class TranslateKoenByteSimple(TranslateKoenSimple):
+  """Problem spec for Simple Ko-En translation."""
+
+  @property
+  def source_mode(self):
+    return 'byte'
+
+  @property
+  def target_mode(self):
+    return 'byte'
+
+  @property
+  def sourced_vocab_size(self):
+    return None 
+
+  @property
+  def targeted_vocab_size(self):
+    return None
 
 

@@ -4,3 +4,4 @@ from __future__ import division
 
 from . import translate
 from . import generator_utils
+from . import text_encoder
