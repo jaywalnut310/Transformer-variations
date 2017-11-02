@@ -67,15 +67,15 @@ class TranslateKoenSimple(translate.TranslateProblem):
 
   @property
   def source_mode(self):
-    return 'word'
+    return 'subword'
 
   @property
   def target_mode(self):
-    return 'word'
+    return 'subword'
 
   @property
   def sourced_vocab_size(self):
-    return 2**13 #8192 
+    return 2**13 #8192
 
   @property
   def targeted_vocab_size(self):
@@ -122,8 +122,8 @@ class TranslateKoenSimple(translate.TranslateProblem):
   def feature_encoders(self, data_dir):
     source_vocab_filename = os.path.join(data_dir, self.source_vocab_name)
     target_vocab_filename = os.path.join(data_dir, self.target_vocab_name)
-    source_token = text_encoder.TokenTextEncoder(source_vocab_filename, replace_oov="UNK")
-    target_token = text_encoder.TokenTextEncoder(target_vocab_filename, replace_oov="UNK")
+    source_token = text_encoder.SubwordTextEncoder(source_vocab_filename)
+    target_token = text_encoder.SubwordTextEncoder(target_vocab_filename)
     return {
       "inputs": source_token,
       "targets": target_token,
@@ -138,21 +138,15 @@ class TranslateKoenChar2wordSimple(TranslateKoenSimple):
   def source_mode(self):
     return 'character'
 
-  @property
-  def sourced_vocab_size(self):
-    return None 
-
   def feature_encoders(self, data_dir):
     source_vocab_filename = os.path.join(data_dir, self.source_vocab_name)
     target_vocab_filename = os.path.join(data_dir, self.target_vocab_name)
     source_token = CharacterTextEncoder(source_vocab_filename, replace_oov="UNK")
-    target_token = text_encoder.TokenTextEncoder(target_vocab_filename, replace_oov="UNK")
+    target_token = text_encoder.SubwordTextEncoder(target_vocab_filename)
     return {
       "inputs": source_token,
       "targets": target_token,
     }
-
-
 
 
 @registry.register_problem
@@ -167,14 +161,6 @@ class TranslateKoenCharacterSimple(TranslateKoenSimple):
   def target_mode(self):
     return 'character'
 
-  @property
-  def sourced_vocab_size(self):
-    return None 
-
-  @property
-  def targeted_vocab_size(self):
-    return None
-
 
 @registry.register_problem
 class TranslateKoenByte2wordSimple(TranslateKoenSimple):
@@ -183,10 +169,6 @@ class TranslateKoenByte2wordSimple(TranslateKoenSimple):
   @property
   def source_mode(self):
     return 'byte'
-
-  @property
-  def sourced_vocab_size(self):
-    return None 
 
 
 @registry.register_problem
@@ -200,13 +182,5 @@ class TranslateKoenByteSimple(TranslateKoenSimple):
   @property
   def target_mode(self):
     return 'byte'
-
-  @property
-  def sourced_vocab_size(self):
-    return None 
-
-  @property
-  def targeted_vocab_size(self):
-    return None
 
 

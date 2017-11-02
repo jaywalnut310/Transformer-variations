@@ -3,6 +3,7 @@ from __future__ import division
 from __future__ import print_function
 
 from tensor2tensor.data_generators import text_encoder
+import tensorflow as tf
 
 class CharacterTextEncoder(text_encoder.TokenTextEncoder):
   """Encoder based on a user-supplied vocabulary (file or list)."""
@@ -34,6 +35,19 @@ class CharacterTextEncoder(text_encoder.TokenTextEncoder):
     super(CharacterTextEncoder, self).__init__(vocab_filename, reverse, vocab_list, replace_oov, num_reserved_ids)
 
 
+  def _init_vocab_from_file(self, filename):
+    """Load vocab from a file.
+    Args:
+      filename: The file to load vocabulary from.
+    """
+    def token_gen():
+      with tf.gfile.Open(filename) as f:
+        for line in f:
+          token = line[:-1]
+          yield token
+            
+    self._init_vocab(token_gen(), add_reserved_tokens=False)
+            
   def encode(self, sentence):
     """Converts a non space-separated string of tokens to a list of ids."""
     tokens = list(sentence.strip())

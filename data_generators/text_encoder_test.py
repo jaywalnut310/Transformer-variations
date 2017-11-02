@@ -43,11 +43,11 @@ class CharacterTextEncoderTest(tf.test.TestCase):
     os.mkdir(cls.test_temp_dir)
 
   def test_character_encdec_from_non_space_separated_sentence(self):
-    corpus = "A B C D E F G H I"
+    corpus = "ABCDEFGHI "
     vocab_filename = os.path.join(self.test_temp_dir, "abc.vocab")
 
     # Make text encoder from a list and store vocab to fake filesystem.
-    encoder = CharacterTextEncoder(None, vocab_list=corpus.split() + [' '])
+    encoder = CharacterTextEncoder(None, vocab_list=list(corpus))
 
     sentence = "ABC DEF GH I"
     s_enc = encoder.encode(sentence)
