@@ -46,6 +46,7 @@ In terms of Out-of-vocabulary(OOV), 'koen_char2word_simple' is more robust due t
 | 아버지가방에들어가신다. | ![](pictures/24ebd5c0d5907114f29b9735a8a366fa.png) | ![](pictures/774810804cdb8a3dc1ca0f91ccab1b28.png) |
 | 아버지가 방에 들어가신다. | ![](pictures/a26f67e0b0eb5ea834efd547e7a78d3e.png) | ![](pictures/1675eb17cbc1d86b1cab44c377bb5cbd.png) |
 | 아버지 가방에 들어가신다. | ![](pictures/a894a9692b2285bf9811fdc495cf176f.png) | ![](pictures/e2ce12369041f64f7efe04f8d1d51d26.png) |
+
 *Table 1. OOV Test for some sentences (Word-level Output)*
 
 ### 2. SubWord-level Output
