@@ -161,6 +161,17 @@ class TranslateKoenCharacterSimple(TranslateKoenSimple):
   def target_mode(self):
     return 'character'
 
+  def feature_encoders(self, data_dir):
+    source_vocab_filename = os.path.join(data_dir, self.source_vocab_name)
+    target_vocab_filename = os.path.join(data_dir, self.target_vocab_name)
+    source_token = CharacterTextEncoder(source_vocab_filename, replace_oov="UNK")
+    target_token = CharacterTextEncoder(target_vocab_filename, replace_oov="UNK")
+    return {
+      "inputs": source_token,
+      "targets": target_token,
+    }
+
+
 
 @registry.register_problem
 class TranslateKoenByte2wordSimple(TranslateKoenSimple):

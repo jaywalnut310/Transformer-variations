@@ -54,10 +54,7 @@ class TransformerChrawr(transformer.Transformer):
     inputs = common_layers.flatten4d3d(inputs)
     
     ### Character-Aware Embedding ###
-    inputs = tf.layers.conv1d(inputs, hparams.reduced_input_size, 1, 1, 'same', name="reduced_embedding")
-    inputs = tdnn(inputs, hparams.chr_kernels, hparams.chr_kernel_features, hparams.chr_maxpool_size)
-    inputs = highway(inputs, inputs.get_shape()[-1], hparams)
-    inputs = tf.layers.conv1d(inputs, hparams.hidden_size, 1, 1, 'same', name="rescaled_embedding")
+    inputs = chrawr_embedding(inputs)
 
     encoder_input, self_attention_bias, encoder_decoder_attention_bias = (
         transformer.transformer_prepare_encoder(inputs, target_space, hparams))
@@ -71,6 +68,30 @@ class TransformerChrawr(transformer.Transformer):
         hparams)
 
     return encoder_output, encoder_decoder_attention_bias
+
+def chrawr_embedding(emb):
+    emb_mask = embedding_mask(emb)
+
+    # rescale dimension(depth)
+    emb = tf.layers.conv1d(emb, hparams.reduced_input_size, 1, 1, 'same', name="rescaled_embedding")
+
+    # chracter aware convolution
+    emb = conv_emb(emb, hparams.chr_kernels, hparams.chr_kernel_features)
+    emb = emb * emb_mask # remove calculate values for zero padding
+
+    # [batch_size x modified_time_step x kernel_feature_size]
+    pool = tf.layers.max_pooling1d(emb, hparams.chr_maxpool_size, hparams.chr_maxpool_size, 'same', name='chrawr_pool')
+
+    emb = highway(emb, emb.get_shape()[-1], hparams)
+
+    # restore dimension(depth)
+    emb = tf.layers.conv1d(emb, hparams.hidden_size, 1, 1, 'same', name="restored_embedding")
+
+    return emb
+
+def embedding_mask(emb):
+    emb_sum = tf.reduce_sum(tf.abs(emb), axis=-1)
+    return tf.expand_dims(tf.to_float(tf.not_equal(emb_sum, 0.0)), -1)
 
 def highway(inputs, size, hparams, bias=-2.0, f=tf.nn.relu, scope='Highway'):
     """Highway Network (cf. http://arxiv.org/abs/1505.00387).
@@ -90,7 +111,7 @@ def highway(inputs, size, hparams, bias=-2.0, f=tf.nn.relu, scope='Highway'):
     return output
 
 
-def tdnn(inputs, kernels, kernel_features, maxpool_size, scope='TDNN'):
+def conv_emb(inputs, kernels, kernel_features, scope='ConvEmb'):
     '''
     :inputs:           input float tensor of shape [(batch_size) x time_step x embed_size]
     :kernels:         array of kernel sizes
@@ -104,18 +125,14 @@ def tdnn(inputs, kernels, kernel_features, maxpool_size, scope='TDNN'):
 
             # [batch_size x time_step x kernel_feature_size]
             conv = tf.layers.conv1d(inputs, kernel_feature_size, kernel_size, 1, 'same', activation=tf.nn.relu, name="kernel_%d" % kernel_size)
-
-            # [batch_size x modified_time_step x kernel_feature_size]
-            pool = tf.layers.max_pooling1d(tf.nn.relu(conv), maxpool_size, maxpool_size, 'same')
-            
-            layers.append(pool)
+            layers.append(conv)
 
         if len(kernels) > 1:
             output = tf.concat(layers, 2)
         else:
             output = layers[0]
 
-    return output # [batch_size x modified_time_step x hidden_dim]
+    return output # [batch_size x time_step x hidden_dim]
 
 @registry.register_hparams
 def transformer_chrawr_base():
@@ -161,10 +178,25 @@ def transformer_chrawr_base_single_gpu():
   return hparams
 
 @registry.register_hparams
-def transformer_chrawr_ko_single_gpu():
-  """HParams for transformer_chrawr base model for single gpu."""
+def transformer_chrawr_long_single_gpu():
+  """HParams for transformer_chrawr model for single gpu."""
   hparams = transformer_chrawr_base_single_gpu()
-  hparams.chr_kernels = [1,2,3,4,5,6,7,8]
-  hparams.chr_kernel_features = [200,200,200,200,200,150,100,50]
+  hparams.chr_maxpool_size = 1
+  return hparams
+
+@registry.register_hparams
+def transformer_chrawr_many_single_gpu():
+  """HParams for transformer_chrawr model for single gpu."""
+  hparams = transformer_chrawr_base_single_gpu()
+  hparams.batch_size = 2 * hparams.batch_size
+  hparams.chr_kernel_features = [224,224,224,224,224,224,224,224]
   hparams.chr_maxpool_size = 3
+  return hparams
+
+
+@registry.register_hparams
+def transformer_chrawr_general_single_gpu():
+  """HParams for transformer_chrawr model for single gpu."""
+  hparams = transformer_chrawr_base_single_gpu()
+  hparams.chr_kernel_features = [224,224,224,224,224,224,224,224]
   return hparams

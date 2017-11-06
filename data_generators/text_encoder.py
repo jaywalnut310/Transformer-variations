@@ -46,7 +46,7 @@ class CharacterTextEncoder(text_encoder.TokenTextEncoder):
           token = line[:-1]
           yield token
             
-    self._init_vocab(token_gen(), add_reserved_tokens=False)
+    self._init_vocab(token_gen(), add_reserved_tokens=True)
             
   def encode(self, sentence):
     """Converts a non space-separated string of tokens to a list of ids."""
