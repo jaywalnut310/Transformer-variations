@@ -74,14 +74,18 @@ def chrawr_embedding(emb, hparams):
 
     # rescale dimension(depth)
     emb = tf.layers.conv1d(emb, hparams.reduced_input_size, 1, 1, 'same', name="rescaled_embedding")
+    emb = emb * emb_mask
 
     # chracter aware convolution
     emb = conv_emb(emb, hparams.chr_kernels, hparams.chr_kernel_features, hparams.chr_maxpool_size, emb_mask)
+    emb_mask_in = embedding_mask(emb)
 
     emb = highway(emb, emb.get_shape()[-1], hparams)
+    emb = emb * emb_mask_in
 
     # restore dimension(depth)
     emb = tf.layers.conv1d(emb, hparams.hidden_size, 1, 1, 'same', name="restored_embedding")
+    emb = emb * emb_mask_in
 
     return emb
 
