@@ -76,11 +76,7 @@ def chrawr_embedding(emb, hparams):
     emb = tf.layers.conv1d(emb, hparams.reduced_input_size, 1, 1, 'same', name="rescaled_embedding")
 
     # chracter aware convolution
-    emb = conv_emb(emb, hparams.chr_kernels, hparams.chr_kernel_features)
-    emb = emb * emb_mask # remove calculate values for zero padding
-
-    # [batch_size x modified_time_step x kernel_feature_size]
-    pool = tf.layers.max_pooling1d(emb, hparams.chr_maxpool_size, hparams.chr_maxpool_size, 'same', name='chrawr_pool')
+    emb = conv_emb(emb, hparams.chr_kernels, hparams.chr_kernel_features, hparams.chr_maxpool_size, emb_mask)
 
     emb = highway(emb, emb.get_shape()[-1], hparams)
 
@@ -111,7 +107,7 @@ def highway(inputs, size, hparams, bias=-2.0, f=tf.nn.relu, scope='Highway'):
     return output
 
 
-def conv_emb(inputs, kernels, kernel_features, scope='ConvEmb'):
+def conv_emb(inputs, kernels, kernel_features, maxpool_size, input_mask, scope='ConvEmb'):
     '''
     :inputs:           input float tensor of shape [(batch_size) x time_step x embed_size]
     :kernels:         array of kernel sizes
@@ -125,14 +121,19 @@ def conv_emb(inputs, kernels, kernel_features, scope='ConvEmb'):
 
             # [batch_size x time_step x kernel_feature_size]
             conv = tf.layers.conv1d(inputs, kernel_feature_size, kernel_size, 1, 'same', activation=tf.nn.relu, name="kernel_%d" % kernel_size)
-            layers.append(conv)
+            conv = conv * input_mask # remove calculate values for zero padding
+
+            # [batch_size x modified_time_step x kernel_feature_size]
+            pool = tf.layers.max_pooling1d(conv, maxpool_size, maxpool_size, 'same', name="kernel_%d_pool" % kernel_size)
+
+            layers.append(pool)
 
         if len(kernels) > 1:
             output = tf.concat(layers, 2)
         else:
             output = layers[0]
 
-    return output # [batch_size x time_step x hidden_dim]
+    return output # [batch_size x modified_time_step x hidden_dim]
 
 @registry.register_hparams
 def transformer_chrawr_base():
