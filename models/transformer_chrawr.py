@@ -54,7 +54,7 @@ class TransformerChrawr(transformer.Transformer):
     inputs = common_layers.flatten4d3d(inputs)
     
     ### Character-Aware Embedding ###
-    inputs = chrawr_embedding(inputs)
+    inputs = chrawr_embedding(inputs, hparams)
 
     encoder_input, self_attention_bias, encoder_decoder_attention_bias = (
         transformer.transformer_prepare_encoder(inputs, target_space, hparams))
@@ -69,7 +69,7 @@ class TransformerChrawr(transformer.Transformer):
 
     return encoder_output, encoder_decoder_attention_bias
 
-def chrawr_embedding(emb):
+def chrawr_embedding(emb, hparams):
     emb_mask = embedding_mask(emb)
 
     # rescale dimension(depth)
