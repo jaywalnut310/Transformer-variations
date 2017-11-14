@@ -205,3 +205,11 @@ def transformer_chrawr_general_single_gpu():
   hparams = transformer_chrawr_base_single_gpu()
   hparams.chr_kernel_features = [224,224,224,224,224,224,224,224]
   return hparams
+
+@registry.register_hparams
+def transformer_chrawr_general_long_single_gpu():
+  """HParams for transformer_chrawr model for single gpu."""
+  hparams = transformer_chrawr_base_single_gpu()
+  hparams.chr_kernel_features = [224,224,224,224,224,224,224,224]
+  hparams.chr_maxpool_size = 1
+  return hparams
