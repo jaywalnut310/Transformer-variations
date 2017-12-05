@@ -308,24 +308,28 @@ def transformer_chrawr_test14():
   return hparams
 
 ### MOS ###
+@registry.register_hparams
 def transformer_mos():
   hparams = transformer.transformer_base()
   hparams.n_experts = 15
   hparams.target_modality="symbol:mos"
   return hparams
 
+@registry.register_hparams
 def transformer_mos_single_gpu():
   hparams = transformer.transformer_base_single_gpu()
   hparams.n_experts = 15
   hparams.target_modality="symbol:mos"
   return hparams
 
+@registry.register_hparams
 def transformer_chrawr_mos():
   hparams = transformer_chrawr_base()
   hparams.n_experts = 15
   hparams.target_modality="symbol:mos"
   return hparams
 
+@registry.register_hparams
 def transformer_chrawr_mos_single_gpu():
   hparams = transformer_chrawr_base_single_gpu()
   hparams.n_experts = 15
