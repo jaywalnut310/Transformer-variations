@@ -11,7 +11,7 @@ All experiments are run over Tensor2Tensor v1.2.9 and Tensorflow 1.4.0.
     * Transformer version of [Fully Character-Level Neural Machine Translation without Explicit Segmentation](https://arxiv.org/pdf/1610.03017.pdf)
 
 * MOS
-    * See [MixtureOfSoftmaxSymbolModality](./utils/modalities.py)
+    * See [MixtureOfSoftmaxSymbolModality](./layers/modalities.py)
     * Add a config like: **hparams.target_modality="symbol:mos"**
     * T2T Implementation of [Breaking the Softmax Bottleneck](https://arxiv.org/pdf/1711.03953.pdf) 
 
