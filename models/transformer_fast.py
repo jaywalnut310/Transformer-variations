@@ -280,7 +280,7 @@ class TransformerFast(transformer.Transformer):
     return decoded_ids, scores 
 
 @registry.register_model
-class TransformerFastAAN(transformer.Transformer):
+class TransformerFastAan(transformer.Transformer):
   """Fast decoding Transformer with Average Attention Layers (https://arxiv.org/abs/1805.00631)."""
 
   def decode(self,
