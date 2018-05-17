@@ -103,4 +103,61 @@ class MixtureOfSoftmaxSymbolModality(modalities.SymbolModality):
       model_output = tf.log(prob + 1e-8)
       model_output = tf.reshape(model_output, tf.concat([shape, [1, self._vocab_size]], 0)) # [b, l, 1, v]
       return model_output
-    
+
+
+@registry.register_symbol_modality("bias")
+class BiasedSymbolModality(modalities.SymbolModality):
+  """SymbolModality that uses bias."""
+  
+  def top(self, body_output, _):
+    """Generate logits.
+    Args:
+      body_output: A Tensor with shape [batch, p0, p1, body_input_depth]
+    Returns:
+      logits: A Tensor with shape  [batch, p0, p1, ?, vocab_size].
+    """
+    if self._model_hparams.symbol_modality_skip_top:
+      return tf.expand_dims(body_output, 3)
+
+    scope_name = "softmax"
+    reuse = tf.AUTO_REUSE 
+
+    with tf.variable_scope(scope_name, reuse=reuse):
+      rank = len(body_output.get_shape().as_list())
+      body_output_shape = [
+          common_layers.shape_dim(body_output, i) for i in range(rank)
+      ]
+      var = self._get_weights(body_output_shape[-1])
+      bias = tf.get_variable('bias', [self._vocab_size], initializer=tf.zeros_initializer())
+
+      if (self._model_hparams.factored_logits and
+          self._model_hparams.mode == tf.estimator.ModeKeys.TRAIN):
+        # insert channels dimension
+        body_output = tf.expand_dims(body_output, 3)
+        logits = common_layers.FactoredTensor(body_output, var)
+      else:
+        body_output = tf.reshape(body_output, [-1, body_output_shape[-1]])
+        logits = tf.matmul(body_output, var, transpose_b=True)
+        logits += bias
+        if self._model_hparams.normalize_before_softmax:
+          mean, variance = tf.nn.moments(logits, -1, keep_dims=True)
+          logits = (logits - mean) * tf.rsqrt(variance + 1e-6)
+        temp = self._model_hparams.softmax_temperature
+        logits /= temp
+
+        out_shape = body_output_shape[:-1] + [1, self._vocab_size]
+        logits = tf.reshape(logits, out_shape)
+      return logits
+
+  def bottom(self, x):
+    self._bottom_was_called = True
+    if self._model_hparams.shared_embedding:
+      return self.bottom_simple(x, "shared", reuse=tf.AUTO_REUSE)
+    else:
+      return self.bottom_simple(x, "input_emb", reuse=tf.AUTO_REUSE)
+
+  def targets_bottom(self, x):
+    if self._model_hparams.shared_embedding:
+      return self.bottom_simple(x, "shared", reuse=tf.AUTO_REUSE)
+    else:
+      return self.bottom_simple(x, "target_emb", reuse=tf.AUTO_REUSE)

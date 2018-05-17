@@ -5,4 +5,3 @@ from __future__ import division
 from .models import *
 from .layers import *
 from .data_generators import *
-from .confidential import *

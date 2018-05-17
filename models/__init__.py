@@ -3,3 +3,4 @@ from __future__ import print_function
 from __future__ import division
 
 from . import transformer_chrawr
+from . import transformer_fast
