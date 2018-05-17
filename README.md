@@ -16,7 +16,7 @@ All experiments are run over Tensor2Tensor v1.2.9 and Tensorflow 1.4.0.
     * T2T Implementation of [Breaking the Softmax Bottleneck](https://arxiv.org/pdf/1711.03953.pdf) 
 
 * Fast Transformer
-    * See [TransformerFast](./modles/transformer_fast.py)
+    * See [TransformerFast](./models/transformer_fast.py)
     * Add Encoder-Decoder attention cache, which is not implemented in T2T yet.
     * For my case, it is about 2.5 times faster than T2T base transformer model.
 
